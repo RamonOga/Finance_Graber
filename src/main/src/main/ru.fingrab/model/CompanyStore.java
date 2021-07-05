@@ -9,10 +9,6 @@ import java.util.Map;
 public class CompanyStore {
     private Map<Integer, Company> companies;
 
-    public CompanyStore(Map<Integer, Company> companies) {
-        this.companies= companies;
-    }
-
     public CompanyStore() {
         this.companies = new HashMap<>();
     }
