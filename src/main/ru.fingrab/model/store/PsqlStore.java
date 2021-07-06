@@ -19,7 +19,7 @@ public class PsqlStore implements AutoCloseable {
         connection = dataBase.getConnection();
     }
 
-    public List<Price> getAll(String name) {
+    public List<Price> getCompanyPriceList(String name) {
         List<Price> rsl = new ArrayList<>();
         String query = "select * from price where name = ?;";
         try (PreparedStatement statement = connection.prepareStatement(query);
@@ -30,6 +30,24 @@ public class PsqlStore implements AutoCloseable {
                         rs.getDouble("lowPrice"),
                         rs.getLong("timestamp")
                         ));
+            }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
+        return rsl;
+    }
+
+    public List<Company> getCompanyList() {
+        List<Company> rsl = new ArrayList<>();
+        String query = "select * from company;";
+        try (PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                rsl.add(new Company(rs.getString("ticker"),
+                        rs.getString("name"),
+                        rs.getString("sector"),
+                        rs.getString("industry")
+                ));
             }
         } catch (SQLException sqle) {
             sqle.printStackTrace();
@@ -66,8 +84,7 @@ public class PsqlStore implements AutoCloseable {
         }
     }
 
-    public boolean addCompany(Company comp) {
-        boolean rsl = false;
+    public void addCompany(Company comp) {
         String query = "insert into company (ticker, name, sector, industry) values (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, comp.getTicker());
@@ -75,13 +92,10 @@ public class PsqlStore implements AutoCloseable {
             statement.setString(3, comp.getSector());
             statement.setString(4, comp.getIndustry());
             statement.executeUpdate();
-            if (statement.executeUpdate() > 0) {
-                rsl = true;
-            }
         } catch (SQLException sqle) {
             sqle.fillInStackTrace();
+            System.out.println(sqle.getMessage());
         }
-        return rsl;
     }
 
     public void addCompanyList(List<Company> companies) {

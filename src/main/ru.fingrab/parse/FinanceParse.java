@@ -19,20 +19,19 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.*;
 
-public class CompanyParse {
+public class FinanceParse {
     private CompanyStore companyStore;
     private PriceStore priceStore;
     private PsqlStore psqlStore;
     DataBase dataBase;
     Properties properties;
 
-    public CompanyParse() {
+    public FinanceParse() {
         properties = PropertiesCreator.getProperties("app.properties");
         dataBase = DataBase.getDataBase(properties);
         this.companyStore = new CompanyStore();
         this.priceStore = new PriceStore();
         this.psqlStore = new PsqlStore(properties);
-        fillCompanyList();
     }
 
     public Document getDocument(String url) {
@@ -79,9 +78,6 @@ public class CompanyParse {
             }
         }
     }
-
-
-
 
     private void fillCompanyList() {
         Document doc = getDocument("https://finviz.com/screener.ashx?v=111&f=idx_sp500&o=-marketcap");
