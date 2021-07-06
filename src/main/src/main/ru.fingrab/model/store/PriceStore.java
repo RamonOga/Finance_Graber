@@ -1,4 +1,7 @@
-package model;
+package model.store;
+
+import model.Company;
+import model.Price;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -24,6 +27,10 @@ public class PriceStore {
 
     public Map<Long, Price> get(Company company) {
         return prices.get(company);
+    }
+
+    public Map<Company, Map<Long, Price>> getAll() {
+        return prices;
     }
 
     public void print() {

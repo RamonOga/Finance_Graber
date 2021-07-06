@@ -1,9 +1,12 @@
 package parse;
 
+import db.DataBase;
+import db.PropertiesCreator;
 import model.Company;
-import model.CompanyStore;
+import model.store.CompanyStore;
 import model.Price;
-import model.PriceStore;
+import model.store.PriceStore;
+import model.store.PsqlStore;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -19,10 +22,16 @@ import java.util.*;
 public class CompanyParse {
     private CompanyStore companyStore;
     private PriceStore priceStore;
+    private PsqlStore psqlStore;
+    DataBase dataBase;
+    Properties properties;
 
     public CompanyParse() {
+        properties = PropertiesCreator.getProperties("app.properties");
+        dataBase = DataBase.getDataBase(properties);
         this.companyStore = new CompanyStore();
         this.priceStore = new PriceStore();
+        this.psqlStore = new PsqlStore(properties);
         fillCompanyList();
     }
 
@@ -50,15 +59,12 @@ public class CompanyParse {
         JSONArray highArr = new JSONArray(quoteJSON.get("high").toString());
         JSONArray lowArr = new JSONArray(quoteJSON.get("high").toString());
         JSONArray timestampArr = new JSONArray(jsonObj.get("timestamp").toString());
-        System.out.println(highArr.length());
-        System.out.println(lowArr.length());
-        System.out.println(timestampArr.length());
-
         for (int i = 0; i < timestampArr.length(); i++) {
-
+            String highPrice = highArr.get(i).toString().equals("null") ? "0" : highArr.get(i).toString();
+            String lowPrice = lowArr.get(i).toString().equals("null") ? "0" : lowArr.get(i).toString();
             priceMap.put(Long.parseLong(timestampArr.get(i).toString()),
-                    new Price(Double.parseDouble(highArr.get(i).toString()),
-                            Double.parseDouble(lowArr.get(i).toString()),
+                    new Price(Double.parseDouble(highPrice),
+                            Double.parseDouble(lowPrice),
                             Long.parseLong(timestampArr.get(i).toString())));
         }
         priceStore.add(company, priceMap);
@@ -80,7 +86,7 @@ public class CompanyParse {
     private void fillCompanyList() {
         Document doc = getDocument("https://finviz.com/screener.ashx?v=111&f=idx_sp500&o=-marketcap");
         Elements els1 = doc.select(".table-dark-row-cp");
-        Elements els2 = doc.select("tr.table-light-row-cp");
+        Elements els2 = doc.select(".table-light-row-cp");
         for (int i = 0; i < els1.size(); i++) {
             companyStore.add(new Company(els1.get(i).child(1).text(),
                     els1.get(i).child(2).text(),
@@ -88,13 +94,18 @@ public class CompanyParse {
                     els1.get(i).child(4).text()
 
             ));
-            companyStore.add(new Company(els1.get(i).child(1).text(),
+            companyStore.add(new Company(els2.get(i).child(1).text(),
                     els2.get(i).child(2).text(),
                     els2.get(i).child(3).text(),
                     els2.get(i).child(4).text()
 
             ));
         }
+        psqlStore.addCompanyList(companyStore.getCompanyList());
+    }
+
+    public void addPricesInDb() {
+        psqlStore.addMap(priceStore.getAll());
     }
 
     public void printCompanies() {

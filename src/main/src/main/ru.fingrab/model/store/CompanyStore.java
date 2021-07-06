@@ -1,4 +1,6 @@
-package model;
+package model.store;
+
+import model.Company;
 
 import java.util.ArrayList;
 import java.util.HashMap;
