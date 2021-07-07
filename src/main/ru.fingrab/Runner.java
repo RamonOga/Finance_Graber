@@ -10,9 +10,7 @@ import java.io.IOException;
 
 public class Runner {
     public static void main(String[] args) throws IOException {
-
-
-       FinanceParse parse = new FinanceParse();
+        FinanceParse parse = new FinanceParse();
         Grabber grabber = new Grabber(parse);
         Scheduler scheduler = null;
         try {

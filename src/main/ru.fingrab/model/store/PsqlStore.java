@@ -19,17 +19,20 @@ public class PsqlStore implements AutoCloseable {
         connection = dataBase.getConnection();
     }
 
-    public List<Price> getCompanyPriceList(String name) {
+    public List<Price> getCompanyPriceList(String ticker) {
         List<Price> rsl = new ArrayList<>();
         String query = "select * from price where name = ?;";
-        try (PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet rs = statement.executeQuery()) {
-            statement.setString(1, name);
-            while (rs.next()) {
-                rsl.add(new Price(rs.getDouble("highPrice"),
-                        rs.getDouble("lowPrice"),
-                        rs.getLong("timestamp")
-                        ));
+        try (PreparedStatement statement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)
+             ) {
+            statement.setString(1, ticker);
+            statement.execute();
+            try (ResultSet rs = statement.getResultSet()) {
+                while (rs.next()) {
+                    rsl.add(new Price(rs.getDouble("highPrice"),
+                            rs.getDouble("lowPrice"),
+                            rs.getLong("timestamp")
+                    ));
+                }
             }
         } catch (SQLException sqle) {
             sqle.printStackTrace();
@@ -55,8 +58,7 @@ public class PsqlStore implements AutoCloseable {
         return rsl;
     }
 
-    public boolean add(Company comp, Price price) {
-        boolean rsl = false;
+    public void add(Company comp, Price price) {
         String query = "insert into price (name, highprice, lowprice, timestamp) values (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, comp.getTicker());
@@ -64,15 +66,10 @@ public class PsqlStore implements AutoCloseable {
             statement.setDouble(3, price.getLowPrice());
             statement.setLong(4, price.getTimeStamp());
             statement.executeUpdate();
-            if (statement.executeUpdate() > 0) {
-                rsl = true;
-            }
         } catch (SQLException sqle) {
             sqle.fillInStackTrace();
         }
-        return rsl;
     }
-
 
     public void addMap(Map<Company, Map<Long, Price>> map) {
         Set<Company> companySet = map.keySet();

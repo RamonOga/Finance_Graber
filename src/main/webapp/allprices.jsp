@@ -11,6 +11,11 @@
 <%@ page import="db.PropertiesCreator" %>
 <%@ page import="model.Company" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="model.Price" %>
+<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.LocalTime" %>
+<%@ page import="java.util.Date" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <!doctype html>
 <html lang="en">
@@ -30,38 +35,46 @@
             integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <title>Работа мечты</title>
+    <title>All prices</title>
 </head>
+
+<%
+    String ticker = request.getParameter("ticker");
+    PsqlStore store = new PsqlStore(PropertiesCreator.getProperties("app.properties"));
+    List<Price> prices = store.getCompanyPriceList(ticker);
+
+%>
 <body>
 <div class="container pt-3">
     <div class="row">
         <div class="card" style="width: 100%">
             <div class="card-header">
-                Компании
+                All prices for <%=ticker%>
             </div>
             <div class="card-body">
                 <table class="table">
                     <thead>
                     <tr>
                         <th scope="col">Ticker</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">..</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Price</th>
+
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${companies}" var="com">
-                        <tr>
-                            <td>
-                                <c:out value="${com.ticker}"/>
-                            </td>
-                            <td>
-                                <c:out value="${com.name}"/>
-                            </td>
-                            <td>
-                                ""
-                            </td>
-                        </tr>
-                    </c:forEach>
+                    <% for (Price pr: prices) { %>
+                    <tr>
+                        <td>
+                            <%= ticker %>
+                        </td>
+                        <td>
+                            <%= new Date(pr.getTimeStamp() * 1000) %>
+                        </td>
+                        <td>
+                            <%= String.format("%.2f", (pr.getHighPrice() + pr.getLowPrice()) / 2 )%>
+                        </td>
+                    </tr>
+                    <% } %>
                     </tbody>
                 </table>
             </div>

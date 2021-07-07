@@ -32,6 +32,7 @@ public class FinanceParse {
         this.companyStore = new CompanyStore();
         this.priceStore = new PriceStore();
         this.psqlStore = new PsqlStore(properties);
+        fillCompanyList();
     }
 
     public Document getDocument(String url) {
@@ -79,7 +80,7 @@ public class FinanceParse {
         }
     }
 
-    private void fillCompanyList() {
+    public void fillCompanyList() {
         Document doc = getDocument("https://finviz.com/screener.ashx?v=111&f=idx_sp500&o=-marketcap");
         Elements els1 = doc.select(".table-dark-row-cp");
         Elements els2 = doc.select(".table-light-row-cp");
@@ -97,7 +98,7 @@ public class FinanceParse {
 
             ));
         }
-        psqlStore.addCompanyList(companyStore.getCompanyList());
+        //psqlStore.addCompanyList(companyStore.getCompanyList());
     }
 
     public void addPricesInDb() {
